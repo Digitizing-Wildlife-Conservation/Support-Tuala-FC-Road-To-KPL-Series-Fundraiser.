@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tuala FC | Road to KPL — From the Ground Up</title>
+<meta name="description" content="Support Tuala FC grassroots youth football in Kitengela, Kenya. Join the 50 Bob Challenge. Goal: KSH 250,000.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & ROOT
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#FFD700;
+  --gold-dark:#C9A800;
+  --red:#CC0000;
+  --green:#006600;
+  --white:#FFFFFF;
+  --black:#000000;
+  --slide-dur:7000;
+  --trans-dur:900ms;
+  --ease-out-expo:cubic-bezier(0.16,1,0.3,1);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Montserrat',sans-serif}
+
+/* ============================================================
+   PRELOADER
+   ============================================================ */
+#preloader{
+  position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;background:#000;
+  transition:opacity 0.8s ease, visibility 0.8s ease;
+}
+#preloader.hide{opacity:0;visibility:hidden}
+.pre-ball-orbit{position:relative;width:80px;height:80px;margin-bottom:20px}
+.pre-ball-orbit::before{
+  content:'⚽';font-size:2.8rem;position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);animation:spinBall 1.2s linear infinite;
+}
+@keyframes spinBall{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.pre-brand{font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#fff;letter-spacing:6px}
+.pre-brand span{color:var(--gold)}
+.pre-sub{font-size:.65rem;color:#888;letter-spacing:4px;text-transform:uppercase;margin-top:4px}
+.pre-bar{width:200px;height:3px;background:#222;border-radius:2px;margin-top:24px;overflow:hidden}
+.pre-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff);border-radius:2px;
+  animation:fillBar 2.2s ease forwards}
+@keyframes fillBar{to{width:100%}}
+
+/* ============================================================
+   HUD
+   ============================================================ */
+#hud{
+  position:fixed;inset:0;z-index:100;pointer-events:none;
+  padding:16px 20px;display:flex;flex-direction:column;
+}
+.hud-top{display:flex;align-items:flex-start;justify-content:space-between}
+.hud-brand{
+  font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#fff;
+  letter-spacing:4px;text-shadow:0 2px 8px rgba(0,0,0,.8);
+}
+.hud-brand span{color:var(--gold)}
+.hud-slide-num{
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;color:rgba(255,255,255,.7);
+  letter-spacing:3px;
+}
+.hud-loc{
+  position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
+  font-size:.55rem;color:rgba(255,255,255,.5);letter-spacing:5px;
+  text-transform:uppercase;white-space:nowrap;
+}
+
+/* Corner accents */
+.corner{position:fixed;width:28px;height:28px;z-index:101;pointer-events:none}
+.corner::before,.corner::after{content:'';position:absolute;background:var(--gold)}
+.corner::before{width:100%;height:2px}
+.corner::after{width:2px;height:100%}
+.corner.tl{top:12px;left:12px}.corner.tl::after{top:0;left:0}
+.corner.tr{top:12px;right:12px;transform:scaleX(-1)}
+.corner.bl{bottom:72px;left:12px;transform:scaleY(-1)}
+.corner.br{bottom:72px;right:12px;transform:scale(-1)}
+
+/* ============================================================
+   NAV DOTS
+   ============================================================ */
+#nav-dots{
+  position:fixed;right:16px;top:50%;transform:translateY(-50%);
+  z-index:102;display:flex;flex-direction:column;gap:8px;pointer-events:all;
+}
+.dot{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);
+  border:1.5px solid rgba(255,255,255,.4);cursor:pointer;
+  transition:all .3s ease;
+}
+.dot.active{background:var(--gold);border-color:var(--gold);transform:scale(1.4)}
+
+/* ============================================================
+   PROGRESS BAR (top)
+   ============================================================ */
+#progress-bar{
+  position:fixed;top:0;left:0;width:0%;height:3px;
+  background:linear-gradient(90deg,var(--gold),#fff,var(--gold));
+  z-index:103;transition:width 0.1s linear;
+}
+
+/* ============================================================
+   FILM GRAIN & VIGNETTE
+   ============================================================ */
+#film-grain{
+  position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:150px 150px;animation:grainMove 0.5s steps(2) infinite;
+}
+@keyframes grainMove{
+  0%{transform:translate(0,0)}25%{transform:translate(-5px,2px)}
+  50%{transform:translate(3px,-3px)}75%{transform:translate(-2px,4px)}100%{transform:translate(0,0)}
+}
+#vignette{
+  position:fixed;inset:0;z-index:98;pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%);
+}
+
+/* ============================================================
+   SLIDER
+   ============================================================ */
+#slider{position:fixed;inset:0;z-index:1}
+.slide{
+  position:absolute;inset:0;overflow:hidden;
+  opacity:0;visibility:hidden;
+  transition:opacity var(--trans-dur) var(--ease-out-expo),
+             visibility var(--trans-dur) var(--ease-out-expo);
+}
+.slide.active{opacity:1;visibility:visible}
+
+/* Slide backgrounds */
+.slide-bg{
+  position:absolute;inset:-10%;width:120%;height:120%;
+  background-size:cover;background-position:center;
+  transform-origin:center;will-change:transform;
+}
+.kenburns-in{animation:kbIn 9s ease-out forwards}
+.kenburns-out{animation:kbOut 9s ease-out forwards}
+.kenburns-pan{animation:kbPan 9s ease-out forwards}
+@keyframes kbIn{from{transform:scale(1.15)}to{transform:scale(1)}}
+@keyframes kbOut{from{transform:scale(1)}to{transform:scale(1.15)}}
+@keyframes kbPan{from{transform:scale(1.1) translateX(-3%)}to{transform:scale(1.1) translateX(3%)}}
+
+/* Slide overlays */
+.ov-bottom{background:linear-gradient(to top,rgba(0,0,0,.95) 0%,rgba(0,0,0,.4) 50%,transparent 100%)}
+.ov-left{background:linear-gradient(to right,rgba(0,0,0,.92) 0%,rgba(0,0,0,.5) 55%,transparent 100%)}
+.ov-dark{background:rgba(0,0,0,.65)}
+.ov-center{background:radial-gradient(ellipse at center,rgba(0,0,0,.2) 0%,rgba(0,0,0,.85) 100%)}
+.slide-overlay{position:absolute;inset:0;z-index:1}
+
+/* ============================================================
+   SLIDE CONTENT
+   ============================================================ */
+.slide-content{
+  position:absolute;inset:0;z-index:2;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:20px 20px 80px;
+  text-align:center;
+}
+.slide-content.left-align{align-items:flex-start;text-align:left;padding-left:6%}
+
+/* Typography */
+.eyebrow{
+  font-family:'Montserrat',sans-serif;font-size:.7rem;font-weight:700;
+  letter-spacing:8px;color:rgba(255,255,255,.7);text-transform:uppercase;
+  margin-bottom:8px;
+}
+.headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3.5rem,14vw,8rem);
+  line-height:.9;color:#fff;
+  text-shadow:0 4px 30px rgba(0,0,0,.8);
+}
+.headline .gold{color:var(--gold)}
+.sub-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(1.8rem,7vw,4rem);
+  color:rgba(255,255,255,.9);line-height:1;letter-spacing:2px;
+}
+.body-text{
+  font-size:clamp(.8rem,2.5vw,1rem);color:rgba(255,255,255,.85);
+  line-height:1.7;max-width:480px;margin-top:12px;
+}
+.body-text .gold{color:var(--gold);font-weight:700}
+.stripe{
+  width:60px;height:3px;margin:14px auto;
+  background:linear-gradient(90deg,#006600,#fff,#cc0000);
+  border-radius:2px;
+}
+.stripe.left{margin-left:0}
+
+/* ============================================================
+   REVEAL ANIMATIONS
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s var(--ease-out-expo),transform .7s var(--ease-out-expo)}
+.reveal.from-left{transform:translateX(-40px)}
+.reveal.from-right{transform:translateX(40px)}
+.slide.active .reveal{opacity:1;transform:translate(0,0)}
+.slide.active .reveal.d1{transition-delay:.2s}
+.slide.active .reveal.d2{transition-delay:.4s}
+.slide.active .reveal.d3{transition-delay:.6s}
+.slide.active .reveal.d4{transition-delay:.8s}
+.slide.active .reveal.d5{transition-delay:1s}
+
+/* ============================================================
+   SLIDE 1 — THE PITCH CALLS
+   ============================================================ */
+#slide-0 .slide-bg{
+  background:linear-gradient(135deg,#0a1628 0%,#1a3a1a 40%,#2d5a1b 70%,#1a4a0a 100%);
+}
+.pitch-art{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:600px;max-width:100%;height:300px;z-index:1;
+}
+.pitch-circle{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+  width:200px;height:200px;border:2px solid rgba(255,255,255,.15);border-radius:50%;
+}
+.pitch-center{
+  position:absolute;bottom:130px;left:50%;transform:translateX(-50%);
+  width:16px;height:16px;background:rgba(255,255,255,.2);border-radius:50%;
+}
+.pitch-line{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:2px;height:120px;background:rgba(255,255,255,.1);
+}
+.pitch-line-h{
+  position:absolute;bottom:120px;left:10%;right:10%;
+  height:2px;background:rgba(255,255,255,.1);
+}
+
+/* ============================================================
+   SLIDE 2 — TUALA FC IDENTITY
+   ============================================================ */
+#slide-1 .slide-bg{
+  background:radial-gradient(ellipse at center,#1a1a2e 0%,#000 70%);
+}
+.badge-wrap{
+  position:relative;width:160px;height:160px;margin-bottom:20px;
+}
+.badge-hex{
+  width:160px;height:160px;
+  background:linear-gradient(135deg,var(--gold) 0%,#8B6914 50%,var(--gold) 100%);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 40px rgba(255,215,0,.4);
+  animation:badgePulse 3s ease-in-out infinite;
+}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 40px rgba(255,215,0,.4)}50%{box-shadow:0 0 70px rgba(255,215,0,.7)}}
+.badge-inner-text{
+  font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:#000;
+  text-align:center;line-height:1;
+}
+.badge-inner-text small{font-size:.8rem;letter-spacing:2px}
+.badge-ring{
+  position:absolute;inset:-12px;
+  border:1px solid rgba(255,215,0,.3);border-radius:50%;
+  animation:rotateSlow 20s linear infinite;
+}
+.badge-ring::after{
+  content:'★  ★  ★  TUALA FC  ★  ★  ★  ';
+  position:absolute;top:-10px;left:50%;
+  transform:translateX(-50%);
+  font-size:.5rem;letter-spacing:3px;color:rgba(255,215,0,.5);
+  white-space:nowrap;
+}
+@keyframes rotateSlow{to{transform:rotate(360deg)}}
+.motto-text{
+  font-family:'Playfair Display',serif;font-style:italic;
+  font-size:1.1rem;color:rgba(255,255,255,.8);margin-top:8px;
+}
+
+/* ============================================================
+   SLIDE 3 — WE GO AGAIN
+   ============================================================ */
+#slide-2 .slide-bg{
+  background:linear-gradient(to right,#0d1117 0%,#1a2744 40%,#2a3f6f 100%);
+}
+.blessing{
+  font-family:'Playfair Display',serif;font-size:clamp(1.1rem,3.5vw,1.6rem);
+  color:rgba(255,255,255,.9);line-height:1.6;margin-top:16px;
+  border-left:3px solid var(--gold);padding-left:16px;
+}
+.blessing .gold{color:var(--gold);font-weight:700}
+.player-silhouette{
+  position:absolute;right:0;bottom:60px;
+  width:280px;height:380px;z-index:0;
+  background:linear-gradient(to bottom, rgba(30,60,120,.4), rgba(10,20,50,.8));
+  clip-path:polygon(40% 0%,60% 0%,80% 10%,85% 30%,75% 50%,80% 70%,90% 80%,100% 100%,0% 100%,15% 80%,20% 60%,25% 45%,18% 25%,25% 10%);
+  opacity:.3;
+}
+
+/* ============================================================
+   SLIDE 4 — ROAD TO KPL
+   ============================================================ */
+#slide-3 .slide-bg{
+  background:linear-gradient(135deg,#1a0000 0%,#3d1a00 40%,#1a0a00 100%);
+}
+.fundraiser-badge{
+  display:inline-block;
+  background:var(--gold);color:#000;
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:4px;
+  padding:6px 20px;border-radius:2px;margin-bottom:20px;
+}
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+.stat-card{
+  background:rgba(255,255,255,.08);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,215,0,.2);border-radius:4px;
+  padding:12px 18px;min-width:110px;text-align:center;
+}
+.stat-label{font-size:.55rem;letter-spacing:3px;color:rgba(255,255,255,.5);margin-bottom:4px}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#fff;letter-spacing:1px}
+.stat-value.gold{color:var(--gold)}
+.stat-value.red{color:#ff4444}
+.prog-wrap{width:min(320px,85vw);margin-top:16px}
+.prog-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;width:0.02%;background:linear-gradient(90deg,var(--gold),#fff);border-radius:3px;
+  animation:progGlow 2s ease-in-out infinite alternate}
+@keyframes progGlow{from{box-shadow:0 0 4px var(--gold)}to{box-shadow:0 0 12px #fff}}
+.prog-label{font-size:.6rem;color:rgba(255,255,255,.5);letter-spacing:3px;margin-top:6px;text-align:right}
+
+/* ============================================================
+   SLIDE 5 — LOCAL TALENT
+   ============================================================ */
+#slide-4 .slide-bg{
+  background:linear-gradient(135deg,#0a0a0a 0%,#1a1a0a 50%,#0a1a0a 100%);
+}
+.needs-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;
+  max-width:420px;
+}
+.need-card{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:6px;padding:12px;text-align:left;
+}
+.need-card .strike{
+  display:block;font-size:.65rem;letter-spacing:2px;color:rgba(255,255,255,.3);
+  text-decoration:line-through;text-transform:uppercase;margin-bottom:4px;
+}
+.need-card .need{
+  display:block;font-size:.85rem;font-weight:700;color:var(--gold);
+}
+
+/* ============================================================
+   SLIDE 6 — 50 BOB CHALLENGE
+   ============================================================ */
+#slide-5 .slide-bg{
+  background:radial-gradient(ellipse at 30% 60%,#1a3300 0%,#000 70%);
+}
+.coins-wrap{display:flex;gap:16px;margin:20px 0;justify-content:center}
+.coin{
+  width:72px;height:72px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff8dc,var(--gold) 40%,#8B6914 80%,#5a4200);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#3d2800;line-height:1;
+  box-shadow:0 4px 15px rgba(255,215,0,.4),inset 0 -3px 6px rgba(0,0,0,.3);
+  animation:coinFloat 2.5s ease-in-out infinite;
+}
+.coin:nth-child(2){animation-delay:.5s}
+.coin:nth-child(3){animation-delay:1s}
+.coin small{font-size:.55rem;letter-spacing:1px}
+@keyframes coinFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+.cta-text{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(1.3rem,4vw,1.8rem);
+  color:#fff;letter-spacing:2px;margin-top:8px;
+}
+.sub-cta{font-size:.85rem;color:rgba(255,255,255,.65);letter-spacing:3px;text-transform:uppercase}
+
+/* ============================================================
+   SLIDE 7 — DONATE NOW
+   ============================================================ */
+#slide-6 .slide-bg{
+  background:linear-gradient(135deg,#003300 0%,#001a33 50%,#1a0000 100%);
+}
+.donate-btn{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--gold),#ffec6e,var(--gold));
+  color:#000;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:4px;
+  padding:14px 40px;border-radius:4px;text-decoration:none;
+  box-shadow:0 0 30px rgba(255,215,0,.5);
+  animation:donPulse 2s ease-in-out infinite;
+  transition:transform .2s;margin-bottom:20px;
+}
+.donate-btn:hover{transform:scale(1.06)}
+@keyframes donPulse{0%,100%{box-shadow:0 0 30px rgba(255,215,0,.5)}50%{box-shadow:0 0 60px rgba(255,215,0,.9)}}
+.pay-methods{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.pay-card{
+  background:rgba(255,255,255,.08);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.15);border-radius:6px;
+  padding:10px 16px;display:flex;align-items:center;gap:8px;
+  color:#fff;font-size:.75rem;letter-spacing:1px;
+  text-decoration:none;transition:background .3s;
+}
+.pay-card:hover{background:rgba(255,255,255,.15)}
+.pay-icon{font-size:1.2rem}
+.dream-text{
+  font-family:'Playfair Display',serif;font-style:italic;
+  font-size:1rem;color:rgba(255,255,255,.7);margin-top:16px;
+}
+
+/* ============================================================
+   SLIDE 8 — END CARD
+   ============================================================ */
+#slide-7 .slide-bg{
+  background:linear-gradient(135deg,#000 0%,#0a1a0a 40%,#1a1400 60%,#000 100%);
+}
+.social-links{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+.social-btn{
+  background:rgba(255,255,255,.08);color:#fff;
+  text-decoration:none;font-size:.75rem;letter-spacing:2px;
+  padding:10px 16px;border:1px solid rgba(255,255,255,.2);border-radius:4px;
+  transition:all .3s;font-weight:600;
+}
+.social-btn:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.social-btn.gold-bg{background:var(--gold);color:#000;border-color:var(--gold)}
+.social-btn.gold-bg:hover{background:#ffec6e}
+.hashtags{
+  font-size:.6rem;color:rgba(255,255,255,.4);letter-spacing:2px;
+  line-height:2;max-width:400px;text-align:center;margin-top:8px;
+}
+.kenya-stripe{
+  width:180px;height:4px;margin:16px auto;
+  background:linear-gradient(90deg,#006600,#fff,#000,#fff,#cc0000);
+  border-radius:2px;
+}
+.share-text{
+  font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:5px;
+  color:rgba(255,255,255,.6);margin-top:8px;
+}
+
+/* ============================================================
+   TICKER
+   ============================================================ */
+#ticker{
+  position:fixed;bottom:40px;left:0;right:0;z-index:200;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(255,215,0,.2);
+  border-bottom:1px solid rgba(255,215,0,.2);
+  padding:7px 0;overflow:hidden;
+}
+.ticker-inner{display:flex;white-space:nowrap;animation:tickerScroll 35s linear infinite}
+.ticker-inner:hover{animation-play-state:paused}
+.ticker-inner span,.ticker-inner a{
+  font-size:.65rem;letter-spacing:2px;color:rgba(255,255,255,.75);
+  text-transform:uppercase;padding:0 10px;display:inline-block;
+  text-decoration:none;
+}
+.ticker-inner a:hover{color:var(--gold)}
+.ticker-inner .sep{color:var(--gold);font-size:.7rem}
+@keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+#controls{
+  position:fixed;bottom:8px;left:50%;transform:translateX(-50%);
+  z-index:201;display:flex;gap:8px;align-items:center;
+}
+.ctrl-btn{
+  background:rgba(255,255,255,.1);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.2);color:#fff;
+  width:36px;height:36px;border-radius:50%;cursor:pointer;
+  font-size:1.1rem;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.ctrl-btn:hover{background:rgba(255,215,0,.3);border-color:var(--gold)}
+#playBtn{width:42px;height:42px;font-size:1rem}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(max-width:480px){
+  .stats-row{gap:8px}
+  .stat-card{min-width:90px;padding:10px 12px}
+  .stat-value{font-size:1.1rem}
+  .needs-grid{gap:8px}
+  .headline{font-size:clamp(2.8rem,16vw,6rem)}
+}
+</style>
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div class="pre-ball-orbit"></div>
+  <div class="pre-brand">TUALA <span>FC</span></div>
+  <div class="pre-sub">Road to KPL · From the Ground Up</div>
+  <div class="pre-bar"><div class="pre-fill" id="preFill"></div></div>
+</div>
+
+<!-- CORNERS -->
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<!-- TOP PROGRESS -->
+<div id="progress-bar"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="hud-top">
+    <div class="hud-brand">TUALA <span>FC</span></div>
+    <div class="hud-slide-num"><span id="slideNum">01</span> / 08</div>
+  </div>
+  <div class="hud-loc">OLOOSIRKON · KITENGELA · KAJIADO COUNTY · KENYA</div>
+</div>
+
+<!-- NAV DOTS -->
+<div id="nav-dots">
+  <div class="dot active" data-s="0"></div>
+  <div class="dot" data-s="1"></div>
+  <div class="dot" data-s="2"></div>
+  <div class="dot" data-s="3"></div>
+  <div class="dot" data-s="4"></div>
+  <div class="dot" data-s="5"></div>
+  <div class="dot" data-s="6"></div>
+  <div class="dot" data-s="7"></div>
+</div>
+
+<!-- FILM GRAIN -->
+<div id="film-grain"></div>
+<div id="vignette"></div>
+
+<!-- ============================================================
+     SLIDES
+     ============================================================ -->
+<div id="slider">
+
+  <!-- SLIDE 1: THE PITCH CALLS -->
+  <div class="slide active" id="slide-0">
+    <div class="slide-bg kenburns-in"></div>
+    <!-- SVG Pitch Art -->
+    <svg style="position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:.18" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+      <rect width="800" height="500" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"/>
+      <circle cx="400" cy="250" r="80" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"/>
+      <circle cx="400" cy="250" r="6" fill="rgba(255,255,255,.4)"/>
+      <line x1="400" y1="0" x2="400" y2="500" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+      <rect x="20" y="150" width="90" height="200" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/>
+      <rect x="690" y="150" width="90" height="200" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/>
+      <rect x="20" y="200" width="45" height="100" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+      <rect x="735" y="200" width="45" height="100" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+      <circle cx="130" cy="250" r="30" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+      <circle cx="670" cy="250" r="30" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+    </svg>
+    <div class="slide-overlay ov-bottom"></div>
+    <div class="slide-content">
+      <div class="eyebrow reveal d1">THE PITCH</div>
+      <div class="headline reveal from-left d2">CALLS <span class="gold">YOU</span></div>
+      <p class="body-text reveal d3">Oloosirkon · Kitengela · Kenya</p>
+      <div class="stripe reveal d4"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: TUALA FC IDENTITY -->
+  <div class="slide" id="slide-1">
+    <div class="slide-bg kenburns-out"></div>
+    <div class="slide-overlay ov-dark"></div>
+    <div class="slide-content">
+      <div class="badge-wrap reveal d1">
+        <div class="badge-hex">
+          <div class="badge-inner-text">TFC<br><small>FOOTBALL</small></div>
+        </div>
+        <div class="badge-ring"></div>
+      </div>
+      <div class="headline reveal d2">TUALA <span class="gold">FC</span></div>
+      <p class="body-text reveal d3" style="color:rgba(255,255,255,.6);font-size:.75rem;letter-spacing:4px">— OUR COMMUNITY TEAM —</p>
+      <p class="motto-text reveal d4">"From the Ground Up"</p>
+      <div class="stripe reveal d5"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: WE GO AGAIN -->
+  <div class="slide" id="slide-2">
+    <div class="slide-bg kenburns-pan"></div>
+    <div class="slide-overlay ov-left"></div>
+    <div class="slide-content left-align">
+      <div class="eyebrow reveal d1">WE GO</div>
+      <div class="headline reveal from-left d2">AGAIN<span class="gold">!</span></div>
+      <div class="blessing reveal d3">
+        The Blessings of God<br>
+        Will Locate You and<br>
+        <span class="gold">Over Power You!</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: ROAD TO KPL -->
+  <div class="slide" id="slide-3">
+    <div class="slide-bg kenburns-in"></div>
+    <div class="slide-overlay ov-dark"></div>
+    <div class="slide-content">
+      <div class="eyebrow reveal d1">ROAD TO</div>
+      <div class="headline reveal d2"><span class="gold">KPL</span> SERIES</div>
+      <div class="fundraiser-badge reveal d3">FUNDRAISER</div>
+      <div class="stats-row reveal d4">
+        <div class="stat-card"><div class="stat-label">GOAL</div><div class="stat-value gold">KSH 250,000</div></div>
+        <div class="stat-card"><div class="stat-label">RAISED</div><div class="stat-value">KSH 50</div></div>
+        <div class="stat-card"><div class="stat-label">TO GO</div><div class="stat-value red">249,950</div></div>
+      </div>
+      <div class="prog-wrap reveal d5">
+        <div class="prog-track"><div class="prog-fill"></div></div>
+        <div class="prog-label">0.02% FUNDED · HELP US REACH KSH 250,000</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: LOCAL TALENT -->
+  <div class="slide" id="slide-4">
+    <div class="slide-bg kenburns-out"></div>
+    <div class="slide-overlay ov-dark"></div>
+    <div class="slide-content">
+      <div class="eyebrow reveal d1">HELP US KEEP</div>
+      <div class="headline reveal d2">LOCAL <span class="gold">TALENT</span></div>
+      <div class="sub-headline reveal d3">IN THE GAME</div>
+      <div class="needs-grid reveal d4">
+        <div class="need-card"><span class="strike">NO BOOTS</span><span class="need">⚽ Goals &amp; Kit</span></div>
+        <div class="need-card"><span class="strike">NO PITCH</span><span class="need">👟 Boots</span></div>
+        <div class="need-card"><span class="strike">NO KIT</span><span class="need">🚌 Transport</span></div>
+        <div class="need-card"><span class="strike">NO TRANSPORT</span><span class="need">📋 FKF Fees</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: 50 BOB CHALLENGE -->
+  <div class="slide" id="slide-5">
+    <div class="slide-bg kenburns-pan"></div>
+    <div class="slide-overlay ov-center"></div>
+    <div class="slide-content">
+      <div class="eyebrow reveal d1">JOIN THE</div>
+      <div class="headline reveal from-right d2"><span class="gold">50 BOB</span></div>
+      <div class="sub-headline reveal from-left d3">CHALLENGE!</div>
+      <div class="coins-wrap reveal d4">
+        <div class="coin">50<br><small>BOB</small></div>
+        <div class="coin">50<br><small>BOB</small></div>
+        <div class="coin">50<br><small>BOB</small></div>
+      </div>
+      <div class="cta-text reveal d5">Just KSH 50 Can Make a Difference!</div>
+      <div class="sub-cta reveal d5" style="margin-top:4px">Every Little Bit Helps!</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: DONATE NOW -->
+  <div class="slide" id="slide-6">
+    <div class="slide-bg kenburns-in"></div>
+    <div class="slide-overlay ov-center"></div>
+    <div class="slide-content">
+      <div class="eyebrow reveal d1">WE NEED YOUR</div>
+      <div class="headline reveal d2"><span class="gold">SUPPORT!</span></div>
+      <a href="https://www.mchanga.africa/fundraiser/127695" target="_blank" rel="noopener" class="donate-btn reveal d3">
+        🏆 DONATE NOW!
+      </a>
+      <div class="pay-methods reveal d4">
+        <div class="pay-card">
+          <span class="pay-icon">📱</span>
+          <span>LIPA NA M-PESA</span>
+        </div>
+        <a href="https://www.mchanga.africa/fundraiser/127695" target="_blank" rel="noopener" class="pay-card">
+          <span class="pay-icon">🌐</span>
+          <span>mchanga.africa/fundraiser/127695</span>
+        </a>
+      </div>
+      <p class="dream-text reveal d5"><em>Let's Make the Dream Come True!</em></p>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: END CARD -->
+  <div class="slide" id="slide-7">
+    <div class="slide-bg kenburns-pan"></div>
+    <div class="slide-overlay ov-dark"></div>
+    <div class="slide-content">
+      <div class="headline reveal d1">TUALA <span class="gold">FC</span></div>
+      <p class="body-text reveal d2" style="font-size:.85rem;letter-spacing:1px;max-width:360px">
+        Together We Can Push Tuala FC Forward! ❤️
+      </p>
+      <div class="social-links reveal d3">
+        <a href="https://www.facebook.com/search/top?q=tuala%20fc" target="_blank" rel="noopener" class="social-btn">📘 Facebook</a>
+        <a href="https://maps.google.com/?q=Tuala,Kitengela,Kenya" target="_blank" rel="noopener" class="social-btn">📍 Google Maps</a>
+        <a href="https://www.mchanga.africa/fundraiser/127695" target="_blank" rel="noopener" class="social-btn gold-bg">💰 Donate</a>
+      </div>
+      <div class="hashtags reveal d4">
+        #TualaFC &nbsp;#RoadToKPL &nbsp;#50BobChallenge<br>
+        #FromTheGroundUp &nbsp;#SupportGrassroots &nbsp;#KenyanFootball
+      </div>
+      <div class="kenya-stripe reveal d4"></div>
+      <div class="share-text reveal d5">SHARE &amp; SUPPORT! SPREAD THE WORD!</div>
+    </div>
+  </div>
+
+</div><!-- /slider -->
+
+<!-- TICKER -->
+<div id="ticker">
+  <div class="ticker-inner">
+    <span>⚽ TUALA FC — OLOOSIRKON · KITENGELA · KAJIADO COUNTY · KENYA</span>
+    <span class="sep">◆</span>
+    <span>📱 DONATE VIA LIPA NA M-PESA</span>
+    <span class="sep">◆</span>
+    <a href="https://www.mchanga.africa/fundraiser/127695" target="_blank" rel="noopener">🌐 mchanga.africa/fundraiser/127695</a>
+    <span class="sep">◆</span>
+    <a href="https://www.facebook.com/search/top?q=tuala%20fc" target="_blank" rel="noopener">📘 FIND US ON FACEBOOK — TUALA FC</a>
+    <span class="sep">◆</span>
+    <a href="https://maps.google.com/?q=Tuala,Kitengela,Kenya" target="_blank" rel="noopener">📍 TUALA, KITENGELA — GOOGLE MAPS</a>
+    <span class="sep">◆</span>
+    <span>☁ Tech Space Cloud Enterprise SaaS</span>
+    <span class="sep">◆</span>
+    <span>📍 Oloosirkon · Past Kitengela Hot Glass Avenue · Empaash-Kirepei Road</span>
+    <span class="sep">◆</span>
+    <span>📞 +254 728 752 765</span>
+    <span class="sep">◆</span>
+    <a href="https://rootstechspacecloud-v4.vercel.app/" target="_blank" rel="noopener">🌐 www.techspacecloudAI.co.ke</a>
+    <span class="sep">◆</span>
+    <a href="https://linktr.ee/digitizingwildlifeconservation" target="_blank" rel="noopener">🔗 Digital HUB</a>
+    <span class="sep">◆</span>
+    <span>#RoadToKPL #50BobChallenge #FromTheGroundUp</span>
+    <span class="sep">◆</span>
+    <!-- Duplicate for seamless loop -->
+    <span>⚽ TUALA FC — OLOOSIRKON · KITENGELA · KAJIADO COUNTY · KENYA</span>
+    <span class="sep">◆</span>
+    <span>📱 DONATE VIA LIPA NA M-PESA</span>
+    <span class="sep">◆</span>
+    <a href="https://www.mchanga.africa/fundraiser/127695" target="_blank" rel="noopener">🌐 mchanga.africa/fundraiser/127695</a>
+    <span class="sep">◆</span>
+    <a href="https://www.facebook.com/search/top?q=tuala%20fc" target="_blank" rel="noopener">📘 FIND US ON FACEBOOK — TUALA FC</a>
+    <span class="sep">◆</span>
+    <a href="https://maps.google.com/?q=Tuala,Kitengela,Kenya" target="_blank" rel="noopener">📍 TUALA, KITENGELA — GOOGLE MAPS</a>
+    <span class="sep">◆</span>
+    <span>📞 +254 728 752 765</span>
+    <span class="sep">◆</span>
+    <a href="https://rootstechspacecloud-v4.vercel.app/" target="_blank" rel="noopener">🌐 www.techspacecloudAI.co.ke</a>
+    <span class="sep">◆</span>
+    <a href="https://linktr.ee/digitizingwildlifeconservation" target="_blank" rel="noopener">🔗 Digital HUB</a>
+    <span class="sep">◆</span>
+    <span>#RoadToKPL #50BobChallenge #FromTheGroundUp</span>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <button class="ctrl-btn" id="prevBtn" aria-label="Previous">‹</button>
+  <button class="ctrl-btn" id="playBtn" aria-label="Pause">⏸</button>
+  <button class="ctrl-btn" id="nextBtn" aria-label="Next">›</button>
+</div>
+
+<script>
+(function(){
+  const TOTAL = 8;
+  const SLIDE_DUR = 7000; // ms per slide
+  let current = 0;
+  let playing = true;
+  let timer = null;
+  let startTime = null;
+  let elapsed = 0;
+  let rafId = null;
+
+  const slides = document.querySelectorAll('.slide');
+  const dots   = document.querySelectorAll('.dot');
+  const slideNum = document.getElementById('slideNum');
+  const playBtn  = document.getElementById('playBtn');
+  const prevBtn  = document.getElementById('prevBtn');
+  const nextBtn  = document.getElementById('nextBtn');
+  const bar      = document.getElementById('progress-bar');
+
+  // ---- Preloader ----
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('preloader').classList.add('hide');
+      startPlay();
+    }, 2400);
+  });
+
+  // ---- Core show ----
+  function showSlide(idx, restart){
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    // Restart Ken Burns by cloning bg
+    const oldBg = slides[idx].querySelector('.slide-bg');
+    if(oldBg){
+      const nb = oldBg.cloneNode(true);
+      oldBg.parentNode.replaceChild(nb, oldBg);
+    }
+    current = ((idx % TOTAL) + TOTAL) % TOTAL;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    slideNum.textContent = String(current + 1).padStart(2,'0');
+    if(restart !== false){
+      elapsed = 0;
+      startTime = performance.now();
+    }
+  }
+
+  // ---- Progress RAF ----
+  function tick(ts){
+    if(!playing){rafId = requestAnimationFrame(tick);return}
+    const dt = ts - startTime;
+    const pct = Math.min(dt / SLIDE_DUR * 100, 100);
+    bar.style.width = pct + '%';
+    if(dt >= SLIDE_DUR){
+      showSlide(current + 1);
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startPlay(){
+    playing = true;
+    playBtn.textContent = '⏸';
+    startTime = performance.now() - elapsed;
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function pausePlay(){
+    playing = false;
+    playBtn.textContent = '▶';
+    elapsed = performance.now() - startTime;
+  }
+
+  // ---- Controls ----
+  playBtn.addEventListener('click', () => playing ? pausePlay() : startPlay());
+  nextBtn.addEventListener('click', () => {showSlide(current+1); if(playing){startTime=performance.now();elapsed=0}});
+  prevBtn.addEventListener('click', () => {showSlide(current-1); if(playing){startTime=performance.now();elapsed=0}});
+  dots.forEach(d => d.addEventListener('click', () => {
+    showSlide(parseInt(d.dataset.s));
+    if(playing){startTime=performance.now();elapsed=0}
+  }));
+
+  // ---- Keyboard ----
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowRight') nextBtn.click();
+    if(e.key === 'ArrowLeft')  prevBtn.click();
+    if(e.key === ' '){e.preventDefault(); playBtn.click()}
+  });
+
+  // ---- Touch / swipe ----
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if(Math.abs(dx) > 40){ dx < 0 ? nextBtn.click() : prevBtn.click() }
+  }, {passive:true});
+
+  // ---- Ticker pause on hover handled via CSS ----
+
+})();
+</script>
+</body>
+</html>
